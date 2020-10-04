@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 import time
-import thread
+import _thread
 import math
 import cv2
 import numpy as np
@@ -52,7 +52,8 @@ for folder_name in path_lists:
 
 # training & testing data
 training_data_file_name = os.path.join(home_dir, 'Documents', project_name, data_set + '.npy')
-testing_data_file_name = os.path.join(home_dir, 'Documents', project_name, test_set + '.npy')
+# testing_data_file_name = os.path.join(home_dir, 'Documents', project_name, test_set + '.npy')
+testing_data_file_name = '/home/yifu/Documents/SuperResolution/long_experiment_64.npy'
 print('#'*50)
 print('Training data-set:        {} '.format(training_data_file_name))
 print('Testing data-set:         {}'.format(testing_data_file_name))

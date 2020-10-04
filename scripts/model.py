@@ -19,6 +19,13 @@ from tensorflow.keras import backend as K
 from tensorflow.keras import losses
 from tensorflow.keras.utils import multi_gpu_model
 
+
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.compat.v1.InteractiveSession(config=config)
+
+
+
 K.set_image_data_format('channels_last')  # TF dimension ordering in this code
 # K.set_floatx('float16')
 K.set_floatx('float32')
