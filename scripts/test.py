@@ -1,7 +1,7 @@
 import numpy as np
 from pypcd import pypcd
 import os
-'''
+
 # generate a 3d data set containing waves like the sea
 # more or less ;)
 
@@ -43,7 +43,7 @@ _new_cloud = pypcd.make_xyz_point_cloud(_new_data)
 
 
 new_cloud.save('new_cloud.pcd')
-'''
+
 
 normalize_ratio = 100.0
 image_cols = 1024
