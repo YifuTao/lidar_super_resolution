@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from pypcd import pypcd
+from os.path import join
 
 
 _elevation_angles = [
@@ -36,12 +37,16 @@ def angle2xyz(_azimuth, _elevation, depth):
         a=0
     return X,Y,Z
 
-def noise_remove(origImages,predImages,):
-    # get low_res_index
+def get_low_res_index():
     image_rows_low = 16 # 8, 16, 32
     image_rows_high = 64 # 16, 32, 64
     upscaling_factor = int(image_rows_high / image_rows_low)
     low_res_index = range(0, image_rows_high, upscaling_factor)
+    return low_res_index
+
+def noise_remove(origImages,predImages,):
+    # get low_res_index
+    low_res_index = get_low_res_index()
     # remove noise
     predImagesNoiseReduced = np.copy(predImages[:,:,:,0:1])
     noiseLabels = predImages[:,:,:,1:2]
@@ -51,7 +56,7 @@ def noise_remove(origImages,predImages,):
 
     return predImagesNoiseReduced
 
-def range2pcd(Images,name):
+def range2pcd(Images,path,name):
     output = np.empty([64,1024,3],dtype=np.float32)
     for i in range(0,64):
         for j in range(0,1024):
@@ -65,29 +70,28 @@ def range2pcd(Images,name):
             output[i,j,2]= z
     output_pcd = pypcd.make_xyz_point_cloud(output.reshape(-1,3))
 
-    output_pcd.save('/Volumes/EthanSSD/linux backup/Documents/%s.pcd'%name)
+    output_pcd.save(join(path,'pcd','%s.pcd'%name))
     # output_pcd.save('/home/yifu/Workspace/lidar_super_resolution/data/long_experiment_prd/%s.pcd'%(name))
 
 
 def main():
     normalize_ratio = 100.0
-    # gt = np.load('/home/yifu/Documents/SuperResolution/long_experiment_64.npy')
-    gt = np.load('/Volumes/EthanSSD/linux_backup/Documents/SuperResolution/long_experiment_64.npy')
-    # prd = np.load('/home/yifu/Documents/SuperResolution/myouster_range_image-UNet-from-16-to-64_prediction.npy') * normalize_ratio # 
-    prd = np.load('/Volumes/EthanSSD/linux_backup/Documents/SuperResolution/myouster_range_image-UNet-from-16-to-64_prediction.npy')
-    np.savetxt('prd.csv',prd[0,:,:,0], delimiter=',')
-    np.savetxt('gt.csv',gt[0,:,:,0], delimiter=',')
-
-    # noise removal
+    path = '/Volumes/EthanSSD/data'
+    gt = np.load(join(path,'long_experiment_64.npy'))
+    prd = np.load(join(path,'myouster_range_image-UNet-from-16-to-64_prediction.npy'))
     
+    # np.savetxt('prd.csv',prd[0,:,:,0], delimiter=',')
+    # np.savetxt('gt.csv',gt[0,:,:,0], delimiter=',')
+
+    Images = noise_remove(gt, prd)
+    low_res_index = get_low_res_index()
     low_res_input = np.zeros(gt.shape, dtype=np.float32) # for visualizing NN input images
     low_res_input[:,low_res_index] = gt[:,low_res_index]
 
-    Images = noise_remove(gt, prd)
     for i in range(0,Images.shape[0]):
-        range2pcd(low_res_input[i],'%d_input'%i)
-        range2pcd(gt[i],'%d_gt'%i)
-        range2pcd(Images[i],'%d_prd'%i)
+        range2pcd(low_res_input[i],path,'%d_input'%i)
+        range2pcd(gt[i],path,'%d_gt'%i)
+        range2pcd(Images[i],path,'%d_prd'%i)
 
 if __name__ == '__main__':
     main()

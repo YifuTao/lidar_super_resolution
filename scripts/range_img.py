@@ -48,14 +48,14 @@ def heatmap(img1,img2,path,name):
     save_video(rgb,path,name)
     
 def main():
-    gt = np.load('/Volumes/EthanSSD/linux_backup/Documents/SuperResolution/long_experiment_64.npy')
-    # prd = np.load('/home/yifu/Documents/SuperResolution/myouster_range_image-UNet-from-16-to-64_prediction.npy') * normalize_ratio # 
-    prd = np.load('/Volumes/EthanSSD/linux_backup/Documents/SuperResolution/myouster_range_image-UNet-from-16-to-64_prediction.npy')
+    path = '/Volumes/EthanSSD/data'
+    gt = np.load(os.path.join(path,'long_experiment_64.npy'))
+    prd = np.load(os.path.join(path,'myouster_range_image-UNet-from-16-to-64_prediction.npy'))
     
     cleaned = noise_remove(gt, prd)
 
-    path = '/Volumes/EthanSSD/linux_backup/Documents/SuperResolution/range_image'
-    heatmap(gt,cleaned,path,'error')    
+    map_path = os.path.join(path,'range_image')
+    heatmap(gt,cleaned,map_path,'error')    
     #save_grey_img(gt,path,'gt')
     #save_grey_img(prd,path,'prd')
     #save_grey_img(cleaned,path,'prd_clean')
