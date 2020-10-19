@@ -6,6 +6,8 @@ This repository contains code for lidar super-resolution with ground vehicles dr
 
 The package depends on Numpy, Tensorflow-keras, and ROS. ROS only is used for visualization.
 CUDA 10.1
+python 2.7
+
 # Compile
 
 Download the package to your workspace and compile to code with ```catkin_make``` (for visualization only).
