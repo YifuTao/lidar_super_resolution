@@ -36,11 +36,19 @@ def angle2xyz(_azimuth, _elevation, depth):
         a=0
     return X,Y,Z
 
-def noise_remove(origImages,predImages,low_res_index):
+def noise_remove(origImages,predImages,):
+    # get low_res_index
+    image_rows_low = 16 # 8, 16, 32
+    image_rows_high = 64 # 16, 32, 64
+    upscaling_factor = int(image_rows_high / image_rows_low)
+    low_res_index = range(0, image_rows_high, upscaling_factor)
+    # remove noise
     predImagesNoiseReduced = np.copy(predImages[:,:,:,0:1])
     noiseLabels = predImages[:,:,:,1:2]
     predImagesNoiseReduced[noiseLabels > predImagesNoiseReduced * 0.03] = 0 # after noise removal
     predImagesNoiseReduced[:,low_res_index] = origImages[:,low_res_index]
+    predImagesNoiseReduced[:,low_res_index,:,0:1] = origImages[:,low_res_index,:,0:1] # copy some of beams from origImages to predImages
+
     return predImagesNoiseReduced
 
 def range2pcd(Images,name):
@@ -61,101 +69,25 @@ def range2pcd(Images,name):
     # output_pcd.save('/home/yifu/Workspace/lidar_super_resolution/data/long_experiment_prd/%s.pcd'%(name))
 
 
+def main():
+    normalize_ratio = 100.0
+    # gt = np.load('/home/yifu/Documents/SuperResolution/long_experiment_64.npy')
+    gt = np.load('/Volumes/EthanSSD/linux_backup/Documents/SuperResolution/long_experiment_64.npy')
+    # prd = np.load('/home/yifu/Documents/SuperResolution/myouster_range_image-UNet-from-16-to-64_prediction.npy') * normalize_ratio # 
+    prd = np.load('/Volumes/EthanSSD/linux_backup/Documents/SuperResolution/myouster_range_image-UNet-from-16-to-64_prediction.npy')
+    np.savetxt('prd.csv',prd[0,:,:,0], delimiter=',')
+    np.savetxt('gt.csv',gt[0,:,:,0], delimiter=',')
 
-normalize_ratio = 100.0
-# gt = np.load('/home/yifu/Documents/SuperResolution/long_experiment_64.npy')
-gt = np.load('/Volumes/EthanSSD/linux backup/Documents/SuperResolution/long_experiment_64.npy')
-# prd = np.load('/home/yifu/Documents/SuperResolution/myouster_range_image-UNet-from-16-to-64_prediction.npy') * normalize_ratio # 
-prd = np.load('/Volumes/EthanSSD/linux backup/Documents/SuperResolution/myouster_range_image-UNet-from-16-to-64_prediction.npy')
-np.savetxt('prd.csv',prd[0,:,:,0], delimiter=',')
-np.savetxt('gt.csv',gt[0,:,:,0], delimiter=',')
+    # noise removal
+    
+    low_res_input = np.zeros(gt.shape, dtype=np.float32) # for visualizing NN input images
+    low_res_input[:,low_res_index] = gt[:,low_res_index]
 
-# noise removal
-image_rows_low = 16 # 8, 16, 32
-image_rows_high = 64 # 16, 32, 64
-upscaling_factor = int(image_rows_high / image_rows_low)
-low_res_index = range(0, image_rows_high, upscaling_factor)
-# Images = noise_remove(gt, prd,low_res_index)
-Images = gt
+    Images = noise_remove(gt, prd)
+    for i in range(0,Images.shape[0]):
+        range2pcd(low_res_input[i],'%d_input'%i)
+        range2pcd(gt[i],'%d_gt'%i)
+        range2pcd(Images[i],'%d_prd'%i)
 
-#----------------------------------Compare with Original image---------------------------------------------
-'''
-file_path = '/home/yifu/Workspace/lidar_super_resolution/data/long_experiment/cloud_0000_1583840211_539847424.pcd'
-pc = pypcd.PointCloud.from_path(file_path)
-pcdata = pc.pc_data.view(np.float32).reshape(-1,3)
-image_rows_full = 64
-image_cols = 1024
-range_image = np.empty([1, image_rows_full, image_cols, 1], dtype=np.float32)
-xyz_image = np.empty([1, image_rows_full, image_cols, 3], dtype=np.float32)
-# define offset
-offset = [0 for x in range(64)]
-for i in range(0,64):
-    offset[i]= (i%4) * 6
-# offset the range image
-for i in range(0,64):
-    for j in range(0,1024):
-        _j = (j+offset[i]) % 1024
-        index = _j * 64 + i
-
-        depth = np.sqrt(pcdata[index,0]**2 + pcdata[index,1]**2 + pcdata[index,2]**2)
-        range_image[0,63-i,j] =depth  # flip the point cloud
-        xyz_image[0,63-i,j,0] = pcdata[index,0]
-        xyz_image[0,63-i,j,1] = pcdata[index,1]
-        xyz_image[0,63-i,j,2] = pcdata[index,2]
-
-output_pcd = pypcd.make_xyz_point_cloud(xyz_image.reshape(-1,3))
-output_pcd.save('original_fliped.pcd')
-
-
-# recover xyz from depth
-frame = 0
-Images = range_image
-output = np.empty([64,1024,3],dtype=np.float32)
-for i in range(0,64):
-    for j in range(0,1024):
-        # pixel_azimuth = _azimuth_angle_offsets[i] + j * 360 / 1024 # in Degrees
-        pixel_azimuth =  j * 360 / 1024 # in Degrees
-        pixel_azimuth = 360 - pixel_azimuth
-        # pixel_azimuth += 360 if pixel_azimuth < 0
-        # pixel_azimuth = pixel_azimuth % 360
-        pixel_elevation = _elevation_angles[63-i]  # in Degrees
-        x, y, z = angle2xyz(pixel_azimuth, pixel_elevation, Images[frame,i,j,0])
-        output[63-i,1023-j,0]= x
-        output[63-i,1023-j,1]= y
-        output[63-i,1023-j,2]= z
-output_pcd = pypcd.make_xyz_point_cloud(output.reshape(-1,3))
-
-output_pcd.save('recovered.pcd')
-'''
-#----------------------------------ENd  ---------------------------------------------
-
-low_res_input = np.zeros(gt.shape, dtype=np.float32) # for visualizing NN input images
-low_res_input[:,low_res_index] = gt[:,low_res_index]
-
-Images = noise_remove(gt, prd,low_res_index)
-Images[:,low_res_index,:,0:1] = gt[:,low_res_index,:,0:1] # copy some of beams from origImages to predImages
-for i in range(0,Images.shape[0]):
-    range2pcd(low_res_input[i],'%d_input'%i)
-    range2pcd(gt[i],'%d_gt'%i)
-    range2pcd(Images[i],'%d_prd'%i)
-
-
-
-'''
-for frame in range(0, Images.shape[0]):
-    output = np.empty([64,1024,3],dtype=np.float32)
-    for i in range(0,64):
-        for j in range(0,1024):
-            # pixel_azimuth = _azimuth_angle_offsets[i] + j * 360 / 1024 # in Degrees
-            pixel_azimuth =  j * 360 / 1024 # in Degrees
-            pixel_azimuth = 360 - pixel_azimuth
-            pixel_elevation = _elevation_angles[63-i]  # in Degrees
-            x, y, z = angle2xyz(pixel_azimuth, pixel_elevation, Images[frame,i,j,0])
-            output[i,j,0]= x
-            output[i,j,1]= y
-            output[i,j,2]= z
-    output_pcd = pypcd.make_xyz_point_cloud(output.reshape(-1,3))
-
-    output_pcd.save('/home/yifu/Workspace/lidar_super_resolution/data/long_experiment_prd/%4d.pcd'%frame)
-
-'''
+if __name__ == '__main__':
+    main()
