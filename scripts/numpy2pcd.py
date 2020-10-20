@@ -78,12 +78,13 @@ def main():
     normalize_ratio = 100.0
     path = '/Volumes/EthanSSD/data'
     gt = np.load(join(path,'long_experiment_64.npy'))
-    prd = np.load(join(path,'myouster_range_image-UNet-from-16-to-64_prediction.npy'))
+    prd = np.load(join(path,'myouster_range_image-UNet-from-16-to-64_prediction.npy'))*normalize_ratio
     
     # np.savetxt('prd.csv',prd[0,:,:,0], delimiter=',')
     # np.savetxt('gt.csv',gt[0,:,:,0], delimiter=',')
 
     Images = noise_remove(gt, prd)
+    
     low_res_index = get_low_res_index()
     low_res_input = np.zeros(gt.shape, dtype=np.float32) # for visualizing NN input images
     low_res_input[:,low_res_index] = gt[:,low_res_index]
