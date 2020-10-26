@@ -73,6 +73,12 @@ def range2pcd(Images,path,name):
     output_pcd.save(join(path,'pcd','%s.pcd'%name))
     # output_pcd.save('/home/yifu/Workspace/lidar_super_resolution/data/long_experiment_prd/%s.pcd'%(name))
 
+def flip(Images):
+    Images=np.flip(Images,1)
+    Images=np.flip(Images,2)
+    return Images
+
+
 
 def main():
     normalize_ratio = 100.0
