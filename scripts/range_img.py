@@ -54,12 +54,14 @@ def heatmap(img1,img2,path,name):
                 rgb[n,i,j,0] = min(max(min(4.0*scaler - 1.5, -4.0*scaler + 4.5), 0.0), 1.0)    #R
                 rgb[n,i,j,1] = min(max(min(4.0*scaler - 0.5, -4.0*scaler + 3.5), 0.0), 1.0)    #G
                 rgb[n,i,j,2] = min(max(min(4.0*scaler + 0.5, -4.0*scaler + 2.5), 0.0), 1.0)    #B
+        if (n%20==0):
+            print(n)        
 
 
 
 
-        #im = Image.fromarray(np.uint8(rgb[n]*255))
-        #im.save(join(path,name,'%s_%d.png'%(name,n)))
+        im = Image.fromarray(np.uint8(rgb[n]*255))
+        im.save(join(path,name,'%s_%d.png'%(name,n)))
     
     save_video(rgb,path,name)
     
