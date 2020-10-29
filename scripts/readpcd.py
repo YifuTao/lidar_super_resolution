@@ -1,7 +1,20 @@
 from pypcd import pypcd
+from PIL import Image
+
 import math
 import numpy as np
+from os.path import join
 import os
+
+def save_grey_img(Images,path,name):
+    scale = 255/(Images.max()-Images.min())
+    
+    # save_video(Images,path,name)
+
+    for i in range(0,Images.shape[0]):
+        im = Image.fromarray(Images[i,:,:,0]*scale)
+        grey = im.convert("L")
+        grey.save(join(path,name,'%s_%d.png'%(name,i)))
 
 def xyz2range(data):
     return np.sqrt(data[0]**2 + data[1]**2 + data[2]**2)
@@ -19,8 +32,8 @@ def main():
 
     range_image_array = np.empty([0, image_rows_full, image_cols, 1], dtype=np.float32)
     # find all bag files in the given dir
-    data_set_name = '/home/yifu/Workspace/lidar_super_resolution/data/long_experiment'
-    bag_file_path = os.path.join(data_set_name)
+    data_set_name = '/home/yifu/data/long_experiment'
+    bag_file_path = join(data_set_name)
     bag_files = sorted(os.listdir(bag_file_path))
     print(bag_files)
     # loop through all bags in the given directory
@@ -33,12 +46,6 @@ def main():
         pc = pypcd.PointCloud.from_path(file_path)
         pcdata = pc.pc_data.view(np.float32).reshape(-1,3)
         range_image = np.empty([1, image_rows_full, image_cols, 1], dtype=np.float32)
-        '''
-        new_cloud_data = pc.pc_data.view(np.float32).reshape(64,1024,3)
-        range_image = new_cloud_data[:,:,0]**2 + new_cloud_data[:,:,1]**2 + new_cloud_data[:,:,2]**2
-        range_image = range_image.reshape(1,64,1024,1)
-        tmp = np.copy(range_image)
-        '''
 
         # offset the range image
         for i in range(0,64):
@@ -48,6 +55,10 @@ def main():
                 depth = np.sqrt(pcdata[index,0]**2 + pcdata[index,1]**2 + pcdata[index,2]**2)
                 range_image[0,63-i,j] =depth  # flip the point cloud
         
+        path = '/home/yifu/data'
+        map_path = join(path,'range_image')
+        save_grey_img(range_image,map_path,'gt')
+
         range_image_array = np.append(range_image_array, range_image, axis=0)
         if range_image_array.shape[0]%5==0:
             print(range_image_array.shape[0])
