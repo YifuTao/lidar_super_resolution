@@ -7,12 +7,12 @@ import matplotlib.pyplot as plt
 
 from os.path import join 
 from readpcd import xyz2range
-from numpy2pcd import flip,get_low_res_index
+from numpy2pcd import get_low_res_index
 
 def save_grey_img(Images,path,name):
-    scale = 255/(Images.max()-Images.min())
+    scale = 255/120 # 255 colour range / 120 maximum metres
     save_video(Images,path,name)
-
+    print('save %s in %s'%(name,join(path,name)))
     for i in range(0,Images.shape[0]):
         im = Image.fromarray(Images[i,:,:,0]*scale)
         grey = im.convert("L")
@@ -87,13 +87,11 @@ def heatmap(img1,img2,path,name):
     save_video(rgb,path,name)
     
 def main():
-    path = '/home/yifu/data'
+    path = '/home/yifu/data/test'
     normalize_ratio = 100.0
 
     gt = np.load(join(path,'long_experiment_64.npy'))
     prd = np.load(join(path,'myouster_range_image-UNet-from-16-to-64_prediction.npy'))*normalize_ratio
-    gt = flip(gt)
-    prd = flip(prd)
     cleaned = noise_remove(gt, prd)
 
     low_res_index = get_low_res_index()
@@ -101,10 +99,11 @@ def main():
     low_res_input[:,low_res_index] = gt[:,low_res_index]
 
     map_path = join(path,'range_image')
+    save_grey_img(gt,map_path,'gt')
+    save_grey_img(prd,map_path,'prd')
+    save_grey_img(cleaned,map_path,'prd_clean')
     heatmap(gt,cleaned,map_path,'error')    
-    #save_grey_img(gt,map_path,'gt')
-    #save_grey_img(prd,map_path,'prd')
-    #save_grey_img(cleaned,map_path,'prd_clean')
+
 
     
     

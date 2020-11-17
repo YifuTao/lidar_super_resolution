@@ -5,6 +5,7 @@ import _thread
 import math
 import cv2
 import numpy as np
+from pathlib import Path
 
 
 data_set = 'carla_ouster_range_image' # high-res training dataset, obtained from simulation - CARLA
@@ -53,7 +54,10 @@ for folder_name in path_lists:
 # training & testing data
 training_data_file_name = os.path.join(home_dir, 'Documents', project_name, data_set + '.npy')
 # testing_data_file_name = os.path.join(home_dir, 'Documents', project_name, test_set + '.npy')
-testing_data_file_name = '/home/yifu/Documents/SuperResolution/long_experiment_64.npy'
+# testing_data_file_name = '/home/yifu/Documents/SuperResolution/gt.npy'
+testing_data_file_name = input('Test Data .npy path:')
+save_path = os.path.join(Path(testing_data_file_name).parent, 'prd.npy')
+print('save Path: %s'%save_path)
 print('#'*50)
 print('Training data-set:        {} '.format(training_data_file_name))
 print('Testing data-set:         {}'.format(testing_data_file_name))

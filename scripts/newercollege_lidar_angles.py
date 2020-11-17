@@ -35,14 +35,16 @@ _azimuth_pixel_offsets = 16 * [0, 6, 12, 18]
 
 
 
-def generate_azimuth_angles() -> List[float]:
+def generate_azimuth_angles(): #-> List[float]:
     offset = 360.0 / _width
     counter_offsets = [offset * x for x in _azimuth_pixel_offsets]
     return [x + y for x, y in zip(_azimuth_angle_offsets, counter_offsets)]
 
 
 
-def to_eigen_variable(coeffs: List[float], var_name: str) -> str:
+# def to_eigen_variable(coeffs: List[float], var_name: str): #-> str:
+def to_eigen_variable(coeffs, var_name):
+
     s = 'const Eigen::VectorXf ' + var_name + ' = (Eigen::VectorXf(' + str(len(coeffs)) + ') << '
     c = ', '.join([str(x) for x in coeffs])
     return s + c + ').finished();'

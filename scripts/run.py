@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from model import *
 from data import *
+import time
+import sys
 
 def train():
     
@@ -37,8 +39,9 @@ def MC_drop(iterate_count=12):  #?
 
     for i in range(test_data_prediction.shape[0]):
 
-        print('Processing {} th of {} images ... '.format(i, test_data_prediction.shape[0]))
-        
+        # print('Processing {} th of {} images ... '.format(i, test_data_prediction.shape[0]))
+        sys.stdout.write("\rProcessing %dth /%d" % (i, test_data_prediction.shape[0]))
+        sys.stdout.flush()
         for j in range(iterate_count):
             this_test[j] = test_data_input[i]   # 12,16,1024,1
 
@@ -50,7 +53,8 @@ def MC_drop(iterate_count=12):  #?
         test_data_prediction[i,:,:,1:2] = this_prediction_var
 
 
-    np.save(os.path.join(home_dir, 'Documents', project_name, 'my' + test_set + '-' + model_name + '-from-' + str(image_rows_low) + '-to-' + str(image_rows_high) + '_prediction.npy'), test_data_prediction)
+    np.save(save_path,test_data_prediction)
+    # np.save(os.path.join(home_dir, 'Documents', project_name, 'my' + test_set + '-' + model_name + '-from-' + str(image_rows_low) + '-to-' + str(image_rows_high) + '_prediction.npy'), test_data_prediction)
 
 
 if __name__ == '__main__':
