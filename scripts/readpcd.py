@@ -24,7 +24,7 @@ def save_grey_img(Images,path,name):
 def xyz2range(data):
     return np.sqrt(data[0]**2 + data[1]**2 + data[2]**2)
 
-def offset_range_img(pcdata):
+def offset_range_img(pcdata,):
 
     # define offset
     offset = [0 for x in range(64)]
@@ -37,6 +37,16 @@ def offset_range_img(pcdata):
         for j in range(0,1024):
             _j = (j+offset[i]) % 1024
             index = _j * 64 + i
+            depth = np.sqrt(pcdata[index,0]**2 + pcdata[index,1]**2 + pcdata[index,2]**2)
+            range_image[0,i,j] =depth
+    return range_image
+
+def pc2range(pcdata):
+    range_image = np.empty([1, image_rows_full, image_cols, 1], dtype=np.float32)
+    for i in range(0,64):
+        for j in range(0,1024):
+            #_j = (j+offset[i]) % 1024
+            index = i * 64 + j
             depth = np.sqrt(pcdata[index,0]**2 + pcdata[index,1]**2 + pcdata[index,2]**2)
             range_image[0,i,j] =depth
     return range_image

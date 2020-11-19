@@ -8,43 +8,35 @@ import sys
 
 import rospy
 import struct
+import rosbag
 
 from sensor_msgs import point_cloud2
 from sensor_msgs.msg import PointCloud2, PointField
 from std_msgs.msg import Header
 
+from numpy2pcd import get_low_res_input,noise_remove, range2xyz, range2pcd
+from readpcd import offset_range_img,image_rows_full,image_cols,save_grey_img,create_4dir,progressbar
 
-rospy.init_node("create_cloud_xyzrgb")
-pub = rospy.Publisher("point_cloud2", PointCloud2, queue_size=2)
 
-points = []
-lim = 8
-for i in range(lim):
-    for j in range(lim):
-        for k in range(lim):
-            x = float(i) / lim
-            y = float(j) / lim
-            z = float(k) / lim
-            r = int(x * 255.0)
-            g = int(y * 255.0)
-            b = int(z * 255.0)
-            a = 255
-            print r, g, b, a
-            rgb = struct.unpack('I', struct.pack('BBBB', b, g, r, a))[0]
-            print hex(rgb)
-            pt = [x, y, z, rgb]
-            points.append(pt)
 
-fields = [PointField('x', 0, PointField.FLOAT32, 1),
-          PointField('y', 4, PointField.FLOAT32, 1),
-          PointField('z', 8, PointField.FLOAT32, 1),
-          # PointField('rgb', 12, PointField.UINT32, 1),
-          PointField('rgba', 12, PointField.UINT32, 1),
-          ]
 
-print points
+range_image_array = np.empty([0, image_rows_full, image_cols, 1], dtype=np.float32)
 
-header = Header()
-header.frame_id = "map"
-pc2 = point_cloud2.create_cloud(header, fields, points)
-print pc2
+
+file_path = '/home/yifu/data/long_experiment/cloud_0000_1583840211_539847424.pcd'
+pc = pypcd.PointCloud.from_path(file_path)
+pcdata = pc.pc_data.view(np.float32).reshape(-1,3)
+range_image = offset_range_img(pcdata)
+
+map_path = '/home/yifu/data/bagfiles/gt_input_prd'
+
+range_image_array = np.append(range_image_array, range_image, axis=0)
+
+        
+# save_grey_img(range_image_array,map_path,'gt')
+npy_file_name = '/home/yifu/data/bagfiles/gt_input_prd/gt.npy'
+np.save(npy_file_name, range_image_array)
+
+gt = np.load(npy_file_name)
+i=0
+range2pcd(gt[i],map_path,'gt', i)
