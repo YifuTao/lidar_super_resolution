@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 import math
 from pypcd import pypcd
@@ -37,14 +38,14 @@ def noise_remove(origImages,predImages,):
 
     return predImagesNoiseReduced
 
-def range2xyz(Images,):
+def range2xyz(Images,reverse_offset=False):
     azimuth_offset = generate_azimuth_angles()
     output = np.empty([64,1024,3],dtype=np.float32)
     for i in range(0,64):
         for j in range(0,1024):
             # pixel_azimuth = _azimuth_angle_offsets[i] + j * 360 / 1024 # in Degrees
-            pixel_azimuth =  j * 360 / 1024 + azimuth_offset[i] # in Degrees    this offset seems noisy?
-            pixel_azimuth = 360 - pixel_azimuth
+            pixel_azimuth =  j * 360.0 / 1024 + azimuth_offset[i] # in Degrees   must be float so 360.0 not 360!
+            pixel_azimuth = 360.0 - pixel_azimuth
             pixel_elevation = _elevation_angles[i]  # in Degrees
             x, y, z = angle2xyz(pixel_azimuth, pixel_elevation, Images[i,j,0])
             output[i,j,0]= x

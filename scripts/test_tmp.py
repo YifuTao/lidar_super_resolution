@@ -13,7 +13,7 @@ import struct
 #from std_msgs.msg import Header
 
 from numpy2pcd import get_low_res_input,noise_remove, range2xyz, range2pcd
-from readpcd import offset_range_img,image_rows_full,image_cols,save_grey_img,create_4dir,progressbar,reverse_offset_range_img
+from readpcd import offset_range_img,image_rows_full,image_cols,save_grey_img,create_4dir,progressbar
 
 
 
@@ -30,7 +30,6 @@ range_image = offset_range_img(pcdata)
 
 # recover
 cloud = range2xyz(range_image[0])
-cloud = reverse_offset_range_img(cloud)
-np.savetxt("/home/yifu/data/long_experiment/processed pcd/%s.csv"%sys.version[:3], cloud, delimiter=",")
+np.savetxt("/home/yifu/data/long_experiment/processed pcd/%s.csv"%sys.version[:3], cloud.reshape(-1,3), delimiter=",")
 output_pcd = pypcd.make_xyz_point_cloud(cloud.reshape(-1,3))
 output_pcd.save(join('/home/yifu/data/long_experiment/processed pcd/numpysave.pcd'))

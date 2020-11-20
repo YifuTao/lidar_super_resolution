@@ -41,6 +41,22 @@ def offset_range_img(pcdata,):
             range_image[0,i,j] =depth
     return range_image
 
+def reverse_offset_range_img(pcdata):
+    # define offset
+    offset = [0 for x in range(64)]
+    for i in range(0,64):
+        offset[i]= (i%4) * 6
+    
+    pcdata_reverse = np.empty([64*1024,3], dtype=np.float32)
+    for i in range(0,64):
+        for j in range(0,1024):
+            _j = (j+offset[i]) % 1024
+            index = _j * 64 + i
+            pcdata_reverse[index] = pcdata[i,j]
+    return pcdata_reverse.reshape(64,1024,3) 
+
+
+
 def pc2range(pcdata):
     range_image = np.empty([1, image_rows_full, image_cols, 1], dtype=np.float32)
     for i in range(0,64):
